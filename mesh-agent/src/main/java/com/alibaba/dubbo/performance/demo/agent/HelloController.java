@@ -32,23 +32,19 @@ public class HelloController {
 
     private AsyncHttpClient asyncHttpClient = org.asynchttpclient.Dsl.asyncHttpClient();
 
-
     @RequestMapping(value = "")
-    public DeferredResult<ResponseEntity> invoke(@RequestParam("interface") String interfaceName,
+    public Object invoke(@RequestParam("interface") String interfaceName,
                          @RequestParam("method") String method,
                          @RequestParam("parameterTypesString") String parameterTypesString,
                          @RequestParam("parameter") String parameter) throws Exception {
         String type = System.getProperty("type");   // 获取type参数
-        DeferredResult<ResponseEntity> result = new DeferredResult<>();
         if ("consumer".equals(type)){
             return consumer(interfaceName,method,parameterTypesString,parameter);
         }
         else if ("provider".equals(type)){
-            result.setResult(ResponseEntity.ok(new String(provider(interfaceName,method,parameterTypesString,parameter))));
-            return result;
+            return provider(interfaceName,method,parameterTypesString,parameter);
         }else {
-            result.setResult(ResponseEntity.ok("Environment variable type is needed to set to provider or consumer."));
-            return result;
+            return "Environment variable type is needed to set to provider or consumer.";
         }
     }
 
@@ -67,7 +63,7 @@ public class HelloController {
             }
         }
 
-        // 简单的负载均衡，随机取一个
+        // 简单的负载均衡，随机取一个  -> 改为 加权轮询
         Endpoint endpoint = endpoints.get(random.nextInt(endpoints.size()));
 
         String url =  "http://" + endpoint.getHost() + ":" + endpoint.getPort();
